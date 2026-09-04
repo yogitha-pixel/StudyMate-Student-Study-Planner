@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>StudyMate - Student Study Planner</title>
+
+    <!-- CSS -->
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background: #4b5bd5;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        header h1 {
+            font-size: 35px;
+            margin-bottom: 8px;
+        }
+
+        main {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            flex: 1;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .planner,
+        .tasks {
+            background: white;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background: #4b5bd5;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .task {
+            border: 1px solid #ddd;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .task h3 {
+            margin-bottom: 8px;
+        }
+
+        .task p {
+            margin: 5px 0;
+        }
+
+        .task-buttons {
+            margin-top: 12px;
+        }
+
+        .complete-btn {
+            background: #28a745;
+            margin-right: 8px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+        }
+
+        .completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #222;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+
+            .dashboard {
+                flex-direction: column;
+            }
+
+            main {
+                width: 95%;
+            }
+
+            header h1 {
+                font-size: 28px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header>
+
+        <h1>📚 StudyMate</h1>
+
+        <p>Student Study Planner</p>
+
+    </header>
+
+
+    <main>
+
+        <!-- DASHBOARD -->
+        <section class="dashboard">
+
+            <div class="card">
+                <h3>Total Tasks</h3>
+                <p id="totalTasks">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Completed</h3>
+                <p id="completedTasks">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Pending</h3>
+                <p id="pendingTasks">0</p>
+            </div>
+
+        </section>
+
+
+        <!-- ADD TASK -->
+        <section class="planner">
+
+            <h2>➕ Add Study Task</h2>
+
+            <form id="studyForm">
+
+                <label>Subject</label>
+
+                <input
+                    type="text"
+                    id="subject"
+                    placeholder="Example: Java"
+                    required
+                >
+
+
+                <label>Topic</label>
+
+                <input
+                    type="text"
+                    id="topic"
+                    placeholder="Example: Inheritance"
+                    required
+                >
+
+
+                <label>Date</label>
+
+                <input
+                    type="date"
+                    id="date"
+                    required
+                >
+
+
+                <label>Study Time</label>
+
+                <input
+                    type="time"
+                    id="time"
+                    required
+                >
+
+
+                <label>Priority</label>
+
+                <select id="priority">
+
+                    <option value="High">
+                        High
+                    </option>
+
+                    <option value="Medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="Low">
+                        Low
+                    </option>
+
+                </select>
+
+
+                <button type="submit">
+                    Add Study Task
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- TASK LIST -->
+        <section class="tasks">
+
+            <h2>📋 My Study Tasks</h2>
+
+            <div id="taskList"></div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            © 2026 StudyMate | Student Study Planner
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+    <script>
+
+        // Get saved tasks
+        let tasks =
+            JSON.parse(
+                localStorage.getItem("studyTasks")
+            ) || [];
+
+
+        // Get form
+        const studyForm =
+            document.getElementById("studyForm");
+
+
+        // Add task
+        studyForm.addEventListener(
+            "submit",
+            function(event) {
+
+                event.preventDefault();
+
+
+                const subject =
+                    document.getElementById("subject").value;
+
+                const topic =
+                    document.getElementById("topic").value;
+
+                const date =
+                    document.getElementById("date").value;
+
+                const time =
+                    document.getElementById("time").value;
+
+                const priority =
+                    document.getElementById("priority").value;
+
+
+                const task = {
+
+                    id: Date.now(),
+
+                    subject: subject,
+
+                    topic: topic,
+
+                    date: date,
+
+                    time: time,
+
+                    priority: priority,
+
+                    completed: false
+
+                };
+
+
+                tasks.push(task);
+
+
+                saveTasks();
+
+
+                studyForm.reset();
+
+
+                displayTasks();
+
+            }
+        );
+
+
+        // Display tasks
+        function displayTasks() {
+
+            const taskList =
+                document.getElementById("taskList");
+
+
+            taskList.innerHTML = "";
+
+
+            if (tasks.length === 0) {
+
+                taskList.innerHTML =
+                    "<p>No study tasks added yet.</p>";
+
+            }
+
+
+            tasks.forEach(function(task) {
+
+                const taskDiv =
+                    document.createElement("div");
+
+
+                taskDiv.className =
+                    task.completed
+                    ? "task completed"
+                    : "task";
+
+
+                taskDiv.innerHTML = `
+
+                    <h3>📚 ${task.subject}</h3>
+
+                    <p>
+                        <strong>Topic:</strong>
+                        ${task.topic}
+                    </p>
+
+                    <p>
+                        <strong>Date:</strong>
+                        ${task.date}
+                    </p>
+
+                    <p>
+                        <strong>Time:</strong>
+                        ${task.time}
+                    </p>
+
+                    <p>
+                        <strong>Priority:</strong>
+                        ${task.priority}
+                    </p>
+
+                    <div class="task-buttons">
+
+                        <button
+                            class="complete-btn"
+                            onclick="completeTask(${task.id})">
+
+                            ${task.completed
+                                ? "Completed"
+                                : "Mark Completed"}
+
+                        </button>
+
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteTask(${task.id})">
+
+                            Delete
+
+                        </button>
+
+                    </div>
+
+                `;
+
+
+                taskList.appendChild(taskDiv);
+
+            });
+
+
+            updateDashboard();
+
+        }
+
+
+        // Complete task
+        function completeTask(id) {
+
+            tasks =
+                tasks.map(function(task) {
+
+                    if (task.id === id) {
+
+                        task.completed =
+                            !task.completed;
+
+                    }
+
+                    return task;
+
+                });
+
+
+            saveTasks();
+
+            displayTasks();
+
+        }
+
+
+        // Delete task
+        function deleteTask(id) {
+
+            tasks =
+                tasks.filter(function(task) {
+
+                    return task.id !== id;
+
+                });
+
+
+            saveTasks();
+
+            displayTasks();
+
+        }
+
+
+        // Update dashboard
+        function updateDashboard() {
+
+            const total =
+                tasks.length;
+
+
+            const completed =
+                tasks.filter(function(task) {
+
+                    return task.completed;
+
+                }).length;
+
+
+            const pending =
+                total - completed;
+
+
+            document.getElementById(
+                "totalTasks"
+            ).innerText = total;
+
+
+            document.getElementById(
+                "completedTasks"
+            ).innerText = completed;
+
+
+            document.getElementById(
+                "pendingTasks"
+            ).innerText = pending;
+
+        }
+
+
+        // Save data
+        function saveTasks() {
+
+            localStorage.setItem(
+                "studyTasks",
+                JSON.stringify(tasks)
+            );
+
+        }
+
+
+        // Load tasks when page opens
+        displayTasks();
+
+    </script>
+
+</body>
+
+</html>
